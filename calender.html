@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='utf-8' />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"
+        integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth'
+            });
+            calendar.render();
+        });
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            axios.get('https://localhost:7023/api/Events').then(res => {
+                var calendarEl = document.getElementById("calendar");
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: "dayGridMonth",
+                    events: res.data,
+
+
+                })
+                calendar.render();
+            })
+
+        })
+        function init() {
+            axios.get('https://localhost:7023/api/Events').then
+                (res => {
+                    res.data.forEach(element => {
+                        var op = document.createElement("option");
+                        op.innerText = element.title;
+                        op.value = element.id;
+                        document.getElementById("eventSelectToDelete").appendChild(op);
+                    });
+                })
+            axios.get('https://localhost:7023/api/Events').then
+                (res => {
+                    res.data.forEach(element => {
+                        var op = document.createElement("option");
+                        op.innerText = element.title;
+                        op.value = element.id;
+                        document.getElementById("eventSelectToUpdate").appendChild(op);
+                    });
+                })
+        }
+        // פונקציה להוספת אירוע
+        function addEvent() {
+            var title = document.getElementById("myText").value;
+            var start = document.getElementById('dt').value;
+
+            axios.post("https://localhost:7023/api/Events", {
+                "title": title,
+                "start": start
+            }).then(res => {
+                console.log("success add");
+                location.reload()
+            })
+        }
+
+        function deleteEvent() {
+            var selectElement = document.getElementById("eventSelectToDelete");
+            var selectedOptionIndex = selectElement.selectedIndex;
+
+            if (selectedOptionIndex !== -1) { // בדיקה אם נבחרה אפשרות
+                var id = selectElement.options[selectedOptionIndex].value;
+            } else {
+                alert("לא נבחרה אף אפשרות.");
+            }
+            axios.delete(`https://localhost:7023/api/Events/${id}`).then(res => {
+                location.reload()
+            })
+
+        }
+        function updateEvent() {
+            debugger
+            var selectElement = document.getElementById("eventSelectToUpdate");
+            var selectedOptionIndex = selectElement.selectedIndex;
+
+            var title = document.getElementById("updatedText").value;
+
+            if (selectedOptionIndex !== -1) { // בדיקה אם נבחרה אפשרות
+                var id = selectElement.options[selectedOptionIndex].value;
+
+            } else {
+                alert("לא נבחרה אף אפשרות.");
+            }
+            axios.put(`https://localhost:7023/api/Events/${id}`, {
+                "title": title
+            }).then(res => {
+                console.log(res.data);
+                location.reload()
+            })
+        }
+
+
+    </script>
+</head>
+
+<body onload="init()">
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col-5">
+                <input type="text" id="myText" placeholder="insert new event">
+                <input type="date" id="dt">
+                <button class="btn btn-outline-primary" onclick="addEvent()" >add event</button>
+            </div>
+            <div class="col-3">
+                <select  id="eventSelectToDelete"></select>
+                <button class="btn btn-outline-primary" onclick="deleteEvent()">delete</button>
+            </div>
+            <div class="col">
+                <input type="text" id="updatedText" placeholder="insert update text">
+                <select  id="eventSelectToUpdate"></select>
+                <button class="btn btn-outline-primary" onclick="updateEvent()">update</button>
+            </div>
+        </div>
+        <div class="row" id='calendar'></div>
+    </div>
+</body>
+
+</html>
